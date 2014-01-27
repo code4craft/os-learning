@@ -2967,11 +2967,13 @@ context_switch(struct rq *rq, struct task_struct *prev,
 	 */
 	arch_start_context_switch(prev);
 
+	// 新进程没有内存空间，那就用上一个的
 	if (!mm) {
 		next->active_mm = oldmm;
 		atomic_inc(&oldmm->mm_count);
 		enter_lazy_tlb(oldmm, next);
 	} else
+		// 内存空间切换
 		switch_mm(oldmm, mm, next);
 
 	if (!prev->mm) {
@@ -2989,6 +2991,7 @@ context_switch(struct rq *rq, struct task_struct *prev,
 #endif
 
 	/* Here we just switch the register state and the stack. */
+	// 寄存器和线程栈切换
 	switch_to(prev, next, prev);
 
 	barrier();
@@ -3006,6 +3009,7 @@ context_switch(struct rq *rq, struct task_struct *prev,
  * externally visible scheduler statistics: current number of runnable
  * threads, current number of uninterruptible-sleeping threads, total
  * number of context switches performed since bootup.
+ * 获取当前的运行信息，nr_系列的方法都做的是这种事
  */
 unsigned long nr_running(void)
 {
@@ -4070,6 +4074,7 @@ pick_next_task(struct rq *rq)
 
 /*
  * schedule() is the main scheduler function.
+ * 核心调度，程序入口。
  */
 asmlinkage void __sched schedule(void)
 {
@@ -4079,9 +4084,15 @@ asmlinkage void __sched schedule(void)
 	int cpu;
 
 need_resched:
+	// 关闭抢占模式
+	// do { } while (0) 这里就是一个宏定义的安全写法，没有实际意义
+	// http://stackoverflow.com/questions/3766827/how-does-do-while0-work-in-macro
 	preempt_disable();
+	//当前处理器的id号
 	cpu = smp_processor_id();
+	//获取该cpu的runqueue
 	rq = cpu_rq(cpu);
+	//RCU: Read-Copy Update
 	rcu_note_context_switch(cpu);
 	prev = rq->curr;
 
@@ -4094,6 +4105,9 @@ need_resched:
 
 	switch_count = &prev->nivcsw;
 	if (prev->state && !(preempt_count() & PREEMPT_ACTIVE)) {
+		// likely和unlikely告诉编译器，这个判断“更可能”是什么值，从而在编译时进行优化
+		// 功能上likely(x)/unlikely(x)与x是等价的
+		// http://kernelnewbies.org/FAQ/LikelyUnlikely
 		if (unlikely(signal_pending_state(prev->state, prev))) {
 			prev->state = TASK_RUNNING;
 		} else {
@@ -4106,10 +4120,13 @@ need_resched:
 			if (prev->flags & PF_WQ_WORKER) {
 				struct task_struct *to_wakeup;
 
+				// 上一个进程休眠
 				to_wakeup = wq_worker_sleeping(prev, cpu);
 				if (to_wakeup)
+					//todo: local是什么？
 					try_to_wake_up_local(to_wakeup);
 			}
+			//从runqueue里删除prev
 			deactivate_task(rq, prev, DEQUEUE_SLEEP);
 
 			/*
@@ -4130,7 +4147,9 @@ need_resched:
 	if (unlikely(!rq->nr_running))
 		idle_balance(cpu, rq);
 
+	// prev进队头，重新调度
 	put_prev_task(rq, prev);
+	// 选一个新进程来执行
 	next = pick_next_task(rq);
 	clear_tsk_need_resched(prev);
 	rq->skip_clock_update = 0;
@@ -4140,6 +4159,7 @@ need_resched:
 		rq->curr = next;
 		++*switch_count;
 
+		// 重要：上下文切换
 		context_switch(rq, prev, next); /* unlocks the rq */
 		/*
 		 * The context switch have flipped the stack from under us
@@ -4155,9 +4175,11 @@ need_resched:
 	post_schedule(rq);
 
 	preempt_enable_no_resched();
+	// 需要重新调度，则跳回开始
 	if (need_resched())
 		goto need_resched;
 }
+//EXPORT_SYMBOL的意思是发布这个函数，其他模块无须include h文件也能使用它
 EXPORT_SYMBOL(schedule);
 
 #ifdef CONFIG_MUTEX_SPIN_ON_OWNER
