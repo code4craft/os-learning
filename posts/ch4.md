@@ -88,7 +88,8 @@ Linux内存管理中还有很多细节，罗列几个，做个备忘。
 
 参考资料：
 
-* [http://www.cnblogs.com/shanyou/archive/2009/12/26/1633052.html](http://www.cnblogs.com/shanyou/archive/2009/12/26/1633052.html)
-* [http://learn.akae.cn/media/ch17s04.html](http://learn.akae.cn/media/ch17s04.html)
+* 文中讲到的LKD指《Linux内核设计与实现》（Linux Kernel Development）
 * 《深入理解计算机系统》
+* [http://learn.akae.cn/media/ch17s04.html](http://learn.akae.cn/media/ch17s04.html)
+* [http://www.cnblogs.com/shanyou/archive/2009/12/26/1633052.html](http://www.cnblogs.com/shanyou/archive/2009/12/26/1633052.html)
 * The Slab Allocator:An Object-Caching Kernel Memory Allocator [http://www.usenix.org/publications/library/proceedings/bos94/full_papers/bonwick.ps](http://www.usenix.org/publications/library/proceedings/bos94/full_papers/bonwick.ps)
