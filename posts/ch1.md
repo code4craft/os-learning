@@ -1,4 +1,4 @@
-Java码农学Linux内核之一-Take It Easy！
+Linux内核学习之一-Take It Easy！
 ======
 
 ## 起-做个了解底层的码农
