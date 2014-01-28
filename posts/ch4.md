@@ -70,7 +70,7 @@ Linux中内存分配相关的代码在[`kernal/page_alloc.c`](https://github.com
 			
 Linux内存管理中还有很多细节，罗列几个，做个备忘。
 
-1. zone
+1. 分区（zone）
 	
 	Linux将内存分为几个区：ZONE_DMA、ZONE_NORMAL和ZONE_HIGHEN。DMA（Direct Memory Access）是一种IO直接操作内存的技术，有些硬件只能用特定地址的内存来进行DMA，对这种内存需要标记一下。
 	
